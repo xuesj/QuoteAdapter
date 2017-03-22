@@ -1,2 +1,2 @@
 # QuoteAdapter
-An adapter deal with SH and SZ stock Exchange quote
+An adapter dealing with SH and SZ stock Exchange quote

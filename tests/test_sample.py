@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-# Update Description
-# @2016/4/26, Created by Xuesj
 
-from parsers.parsers import Parser
+from parsers.parsers import ParserDemo
 
 
 def test_board():
-    parser = Parser(5)
+    parser = ParserDemo(5)
     assert parser.getNum() == 5

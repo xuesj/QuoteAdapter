@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# Update Description
-# @2017/03/10, Created by Xuesj
 
 
-class Parser(object):
+class ParserDemo(object):
     def __init__(self, n):
         self._num = n
 
