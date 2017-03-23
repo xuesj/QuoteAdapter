@@ -82,7 +82,7 @@ def test_exchange_quote():
     t1 = datetime.time(hour=9, minute=30)
     t2 = datetime.time(hour=11, minute=30)
     t3 = datetime.time(hour=13, minute=30)
-    t4 = datetime.time(hour=15, minute=30)
+    t4 = datetime.time(hour=23, minute=45)
 
     periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
     trans_calendar = TransCalendar(periods)

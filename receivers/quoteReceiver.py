@@ -112,7 +112,8 @@ class ExchangeQuote(object):
         while self.is_open():
             if self.has_msg():
                 self._last_msg_time = os.path.getmtime(self._port)
-                q.put('Hello: ' + str(i))
+                with open(self._port, 'r') as f:
+                    q.put(f.read() + str(i))
                 i += 1
             time.sleep(0.1)
 
@@ -132,9 +133,7 @@ class ExchangeQuote(object):
 
     @staticmethod
     def is_close(dt=None):
-        if dt is None:
-            dt = datetime.now()
-        return dt is None
+        pass
 
     def has_msg(self):
         if self._protocol == ExchangeProtocol.FILE:
