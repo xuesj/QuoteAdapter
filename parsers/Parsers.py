@@ -2,6 +2,8 @@
 import abc
 from collections import defaultdict
 import datetime
+from utils import Exchange, Protocol
+from parsers.Quotes import QuoteSnapshot
 
 
 class Parser(object):
@@ -31,6 +33,44 @@ class Parser(object):
         }
         leading = parse_rule[0]
         return field_parsers[leading](ex, protocol, parse_rule)
+
+    @classmethod
+    def handle_head(cls, ex, protocol, dict_value):
+        if ex == Exchange.SH and protocol == Protocol.FILE:
+            quote_datetime = dict_value['MDTime']
+            exchange_status = dict_value['MDSesStatus']
+            num_equity = dict_value['TotNumTradeReports']
+            quotes = defaultdict(dict)
+            quote_snapshot = QuoteSnapshot(ex,
+                                           quote_datetime,
+                                           exchange_status,
+                                           num_equity,
+                                           quotes)
+            return quote_snapshot
+
+    @classmethod
+    def handle_index(cls, ex, protocol, dict_value):
+        return dict_value
+
+    @classmethod
+    def handle_stock(cls, ex, protocol, dict_value):
+        return dict_value
+
+    @classmethod
+    def handle_fund(cls, ex, protocol, dict_value):
+        return dict_value
+
+    @classmethod
+    def handle_bond(cls, ex, protocol, dict_value):
+        return dict_value
+
+    @classmethod
+    def handle_tail(cls, ex, protocol, dict_value):
+        return dict_value
+
+    @classmethod
+    def get_quote(cls, ex, protocol, dict_value):
+        pass
 
 
 class StringParser(Parser):
@@ -141,12 +181,28 @@ class TimeParser(Parser):
         return dt
 
 
-class HeadParser(Parser):
-    """To parse the head of Shanghai Exchange's quote file, e.g. mktdt00.txt"""
-    def __init__(self, exchange, protocol, conf_file, msg_sep='|', conf_sep=','):
-        super(HeadParser, self).__init__(exchange, protocol)
+class LineParser(Parser):
+    """To parse a line of an Exchange's quote"""
+    HEAD = 0
+    INDEX = 1
+    STOCK = 2
+    FUND = 3
+    BOND = 4
+    TAIL = 5
+
+    HANDLES = {0: Parser.handle_head,
+               1: Parser.handle_index,
+               2: Parser.handle_stock,
+               3: Parser.handle_fund,
+               4: Parser.handle_bond,
+               5: Parser.handle_tail
+               }
+
+    def __init__(self, exchange, protocol, conf_file, line_type, msg_sep='|', conf_sep=','):
+        super(LineParser, self).__init__(exchange, protocol)
         self._msg_sep = msg_sep
         self._conf_sep = conf_sep
+        self._line_type = line_type
         self._rules = []
         self.set_rules(conf_file)
 
@@ -168,7 +224,7 @@ class HeadParser(Parser):
                     d[name] = value
                 d['Parser'] = Parser.get_field_parser(ex, protocol, d['Rule_String'])
                 self._rules.append(d)
-            self._rules.sort(key=lambda x: x[name_list[0]])
+            self._rules.sort(key=lambda x: int(x[name_list[0]]))
 
     def parse(self, msg):
         d = defaultdict(dict)
@@ -178,7 +234,9 @@ class HeadParser(Parser):
             d[rule['Name']] = rule['Parser'].parse(msg_item)
             if rule['Value'] is not '':
                 assert d[rule['Name']] == rule['Parser'].parse(rule['Value'])
-        return d
+
+        handle = LineParser.HANDLES[self._line_type]
+        return handle(self._exchange, self._protocol, d)
 
 
 class SnapshotParser(Parser):

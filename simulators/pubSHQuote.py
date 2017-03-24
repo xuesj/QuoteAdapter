@@ -5,7 +5,7 @@ import os.path
 import time
 
 PUB_FILE = '../datas/mktdt00.txt'
-SOURCE_FILE = '../datas/head_conf.txt'
+SOURCE_FILE = '../datas/head_data.txt'
 
 
 def pub_quotes(source_file, pub_file):

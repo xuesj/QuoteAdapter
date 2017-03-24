@@ -1,8 +1,8 @@
 # -*- coding: UTF-8 -*-
 from collections import defaultdict
-from parsers.Parsers import StringParser, IntParser, DatetimeParser, HeadParser
-import datetime
+from parsers.Parsers import StringParser, IntParser, DatetimeParser, LineParser
 from utils import Exchange, Protocol
+from parsers.Quotes import QuoteSnapshot
 
 
 def test_head_rule_file():
@@ -10,7 +10,8 @@ def test_head_rule_file():
     rule_file = '../parsers/head_rule.conf'
     ex = Exchange.SH
     protocol = Protocol.FILE
-    head_parser = HeadParser(ex, protocol, rule_file)
+    line_type = LineParser.HEAD
+    head_parser = LineParser(ex, protocol, rule_file, line_type)
 
     assert head_parser.parse_rules[0]['Seq'] == '1'
     assert head_parser.parse_rules[1]['Seq'] == '2'
@@ -53,24 +54,3 @@ def test_head_rule_file():
     assert head_parser.parse_rules[6]['Value'] is ''
     assert head_parser.parse_rules[7]['Value'] == '0'
     assert head_parser.parse_rules[8]['Value'] is ''
-
-
-def test_head_parser():
-
-    mktdt00 = '../datas/head_conf.txt'
-    head_conf = '../parsers/head_rule.conf'
-    ex = Exchange.SH
-    protocol = Protocol.FILE
-
-    head_parser = HeadParser(ex, protocol, head_conf)
-    with open(mktdt00, 'r') as f:
-        line = f.readline()
-        d = head_parser.parse(line)
-
-    assert d
-    assert d['BeginString'] == 'HEADER'
-    assert d['Version'] == 'MTP1.00'
-    assert d['SenderCompID'] == 'XSHG01'
-    assert d['MDUpdateType'] == 0
-    dt = datetime.datetime(2017, 03, 24, 13, 45, 20, 001)
-    assert d['MDTime'] == dt

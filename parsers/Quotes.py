@@ -6,13 +6,12 @@ class Quotes(object):
     """Base class of Quotes"""
 
     def __init__(self,
-                 exchange_id,
+                 exchange,
                  market_id,
                  equity_id,
                  equity_symbol,
                  equity_status,
-                 quote_date,
-                 quote_time,
+                 quote_datetime,
                  quote_period,
                  last_close,
                  open_price,
@@ -20,13 +19,12 @@ class Quotes(object):
                  low_price,
                  close_price
                  ):
-        self._exchange_id = exchange_id
+        self._exchange = exchange
         self._market_id = market_id
         self._equity_id = equity_id
         self._equity_symbol = equity_symbol
         self._equity_status = equity_status
-        self._quote_date = quote_date
-        self._quote_time = quote_time
+        self._quote_date = quote_datetime
         self._quote_period = quote_period
         self._last_close = last_close
         self._open_price = open_price
@@ -35,12 +33,12 @@ class Quotes(object):
         self._close_price = close_price
 
     @property
-    def exchange_id(self):
-        return self._exchange_id
+    def exchange(self):
+        return self._exchange
 
-    @exchange_id.setter
-    def exchange_id(self, val):
-        self._exchange_id = val
+    @exchange.setter
+    def exchange(self, val):
+        self._exchange = val
 
     @property
     def market_id(self):
@@ -75,20 +73,12 @@ class Quotes(object):
         self._equity_status = val
 
     @property
-    def quote_date(self):
+    def quote_datetime(self):
         return self._quote_date
 
-    @quote_date.setter
-    def quote_date(self, val):
+    @quote_datetime.setter
+    def quote_datetime(self, val):
         self._quote_date = val
-
-    @property
-    def quote_time(self):
-        return self._quote_time
-
-    @quote_time.setter
-    def quote_time(self, val):
-        self._quote_time = val
 
     @property
     def quote_period(self):
@@ -143,42 +133,32 @@ class QuoteSnapshot(object):
     """A quote snapshot of a exchange including all it's market's equity"""
 
     def __init__(self,
-                 exchange_id,
-                 quote_date,
-                 quote_time,
+                 exchange,
+                 quote_datetime,
                  exchange_status,
                  num_equity,
                  quotes):
-        self._exchange_id = exchange_id
-        self._quote_date = quote_date
-        self._quote_time = quote_time
+        self._exchange = exchange
+        self._quote_date = quote_datetime
         self._exchange_status = exchange_status
         self._num_equity = num_equity
         self._quotes = quotes
 
     @property
-    def exchange_id(self):
-        return self._exchange_id
+    def exchange(self):
+        return self._exchange
 
-    @exchange_id.setter
-    def exchange_id(self, val):
-        self._exchange_id = val
+    @exchange.setter
+    def exchange(self, val):
+        self._exchange = val
 
     @property
-    def quote_date(self):
+    def quote_datetime(self):
         return self._quote_date
 
-    @quote_date.setter
+    @quote_datetime.setter
     def quote_date(self, val):
         self._quote_date = val
-
-    @property
-    def quote_time(self):
-        return self._quote_time
-
-    @quote_time.setter
-    def quote_time(self, val):
-        self._quote_time = val
 
     @property
     def exchange_status(self):

@@ -16,3 +16,10 @@ class Port(object):
 class Exchange(object):
     SH = 0
     SZ = 1
+
+
+class ExChangeStatus(object):
+    OPEN = 0        # open
+    CLOSE = 1       # close
+    PRE_OPEN_BIDDING = 2    # pre_open bidding
+    NOON_INTERVAL = 3       # noon interval
