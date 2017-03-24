@@ -7,17 +7,7 @@ from multiprocessing import Process
 from collections import defaultdict
 import os.path
 import time
-
-
-class ExchangeProtocol(object):
-    __slots__ = ['value']
-    TCP = 0
-    FILE = 1
-    SQLSERVER = 2
-
-
-class ExchangePort(object):
-    __slots__ = ['value']
+from utils import Port, Protocol, Exchange
 
 
 class TransPeriod(object):
@@ -136,7 +126,7 @@ class ExchangeQuote(object):
         pass
 
     def has_msg(self):
-        if self._protocol == ExchangeProtocol.FILE:
+        if self._protocol == Protocol.FILE:
             msg_time = os.path.getmtime(self._port)
             if msg_time > self._last_msg_time:
                 # self._last_msg_time = msg_time

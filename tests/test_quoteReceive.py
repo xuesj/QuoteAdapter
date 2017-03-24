@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
 
 from receivers.quoteReceiver import ExchangeQuote, TransCalendar, TransPeriod
-from receivers.quoteReceiver import ExchangeProtocol, ExchangePort
+from utils import Protocol, Port, Exchange
 import datetime
 from multiprocessing import Queue
+from parsers.Parsers import HeadParser
 
 
 def test_trans_period():
@@ -21,10 +22,10 @@ def test_trans_period():
 
 
 def test_exchange_protocol():
-    protocol = ExchangeProtocol()
-    protocol.value = ExchangeProtocol.FILE
+    protocol = Protocol()
+    protocol.value = Protocol.FILE
     assert protocol.value == 1
-    protocol.value = ExchangeProtocol.TCP
+    protocol.value = Protocol.TCP
     assert protocol.value == 0
     try:
         protocol.name = 'james'
@@ -33,7 +34,7 @@ def test_exchange_protocol():
 
 
 def test_exchange_port():
-    exchange_port = ExchangePort()
+    exchange_port = Port()
     exchange_port.value = 'james'
     assert exchange_port.value == 'james'
     try:
@@ -66,23 +67,23 @@ def test_trans_calendar():
     assert not trans_calendar.is_trans_day(dt3)
     assert trans_calendar.is_trans_day(dt4)
 
-    assert datetime.date(2017, 1, 1) in trans_calendar._holidays[2017]
-    assert datetime.date(2017, 10, 1) in trans_calendar._holidays[2017]
-    assert datetime.date(2017, 10, 8) in trans_calendar._holidays[2017]
-    assert datetime.date(2017, 4, 4) in trans_calendar._holidays[2017]
-    assert datetime.date(2017, 1, 27) in trans_calendar._holidays[2017]
+    assert not trans_calendar.is_trans_day(datetime.datetime(2017, 1, 1))
+    assert not trans_calendar.is_trans_day(datetime.datetime(2017, 10, 1))
+    assert not trans_calendar.is_trans_day(datetime.datetime(2017, 10, 8))
+    assert not trans_calendar.is_trans_day(datetime.datetime(2017, 4, 4))
+    assert not trans_calendar.is_trans_day(datetime.datetime(2017, 1, 27))
 
 
 def test_exchange_quote():
-    protocol = ExchangeProtocol.FILE
+    protocol = Protocol.FILE
     port = '../datas/mktdt00.txt'
     timeout = 3
     interval = 6
 
     t1 = datetime.time(hour=9, minute=30)
     t2 = datetime.time(hour=11, minute=30)
-    t3 = datetime.time(hour=13, minute=30)
-    t4 = datetime.time(hour=23, minute=45)
+    t3 = datetime.time(hour=13, minute=00)
+    t4 = datetime.time(hour=18, minute=00)
 
     periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
     trans_calendar = TransCalendar(periods)
@@ -101,8 +102,19 @@ def test_exchange_quote():
     while exchange_quote.is_open():
         quote = exchange_quote.read_quote()
         if quote is not None:
-            print quote
-            assert quote == 'Hello: ' + str(i)
+            head_conf = '../parsers/head_rule.conf'
+            ex = Exchange.SH
+            protocol = Protocol.FILE
+            head_parse = HeadParser(ex, protocol, head_conf)
+            line = quote.split('\n')[0]
+            d = head_parse.parse(line)
+
+            assert d['BeginString'] == 'HEADER'
+            assert d['Version'] == 'MTP1.00'
+            assert d['SenderCompID'] == 'XSHG01'
+            assert d['MDUpdateType'] == 0
+
+            print('Get quote ' + str(i))
             i += 1
             if i >= 5:
                 break

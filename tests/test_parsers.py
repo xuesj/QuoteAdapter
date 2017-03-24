@@ -3,6 +3,7 @@
 import datetime
 
 from parsers.Parsers import Parser, IntParser, StringParser, FloatParser, DatetimeParser, TimeParser
+from utils import Exchange, Port, Protocol
 
 
 def test_parser():
@@ -11,12 +12,14 @@ def test_parser():
     f_rule = 'F8(3)'
     d_rule = 'D21'
     t_rule = 'T12'
+    ex = Exchange.SH
+    protocol = Protocol.FILE
 
-    parser1 = Parser.get_field_parser(c_rule)
-    parser2 = Parser.get_field_parser(i_rule)
-    parser3 = Parser.get_field_parser(f_rule)
-    parser4 = Parser.get_field_parser(d_rule)
-    parser5 = Parser.get_field_parser(t_rule)
+    parser1 = Parser.get_field_parser(ex, protocol, c_rule)
+    parser2 = Parser.get_field_parser(ex, protocol, i_rule)
+    parser3 = Parser.get_field_parser(ex, protocol, f_rule)
+    parser4 = Parser.get_field_parser(ex, protocol, d_rule)
+    parser5 = Parser.get_field_parser(ex, protocol, t_rule)
 
     assert isinstance(parser1, StringParser)
     assert isinstance(parser2, IntParser)
