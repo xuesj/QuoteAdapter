@@ -1,134 +1,97 @@
 # -*- coding: UTF-8 -*-
 
 import datetime
+from parsers.Quotes import Quote, QuoteSnapshot
+from utils import Exchange, Market, EquityStatus, MarketStatus, EquityCategory, QuotePeriod
+from collections import defaultdict
 import time
 
-from parsers.Quotes import Quotes, QuoteSnapshot
-from utils import Exchange
+
+def get_quote():
+    exchange = Exchange.SH
+    market = Market.A
+    equity = '000001'
+    symbol = 'AAPL'
+    category = EquityCategory.STOCK
+    status = EquityStatus.TRADE
+    dt = datetime.datetime.now()
+    volume = 10000
+    amount = 100000.23
+    last = 10.01
+    open_price = 11.01
+    high = 12.01
+    low = 9.01
+    price = 9.99
+    close_price = 11.01
+    timestamp = time.time()
+    period = QuotePeriod.SECOND
+
+    quote = Quote(exchange,
+                  market,
+                  equity,
+                  symbol,
+                  category,
+                  status,
+                  dt,
+                  volume,
+                  amount,
+                  last,
+                  open_price,
+                  high,
+                  low,
+                  price,
+                  close_price,
+                  timestamp,
+                  period
+                  )
+    return quote
+
+
+def get_snapshot():
+    exchange = Exchange.SH
+    dt = datetime.datetime.now()
+    status = MarketStatus.OPEN
+    volume = 1000
+    amount = 10000.23
+    timestamp = time.time()
+    period = QuotePeriod.SECOND
+
+    snapshot = QuoteSnapshot(exchange,
+                             dt,
+                             status,
+                             volume,
+                             amount,
+                             timestamp,
+                             period
+                             )
+    return snapshot
 
 
 def test_quotes():
-    exchange = Exchange.SH
-    market_id = 'A'
-    equity_id = '000001'
-    equity_symbol = '001'
-    equity_status = '1'
-    quote_date = datetime.datetime.now()
-    quote_period = 1
-    last_close = 10.01
-    open_price = 11.01
-    high_price = 12.01
-    low_price = 9.01
-    close_price = 11.01
 
-    a_quote = Quotes(exchange,
-                     market_id,
-                     equity_id,
-                     equity_symbol,
-                     equity_status,
-                     quote_date,
-                     quote_period,
-                     last_close,
-                     open_price,
-                     high_price,
-                     low_price,
-                     close_price)
-
-    assert a_quote.exchange == Exchange.SH
-    assert a_quote.market_id == 'A'
-    assert a_quote.equity_id == '000001'
-    assert a_quote.equity_symbol == '001'
-    assert a_quote.equity_status == '1'
-    assert a_quote.quote_datetime <= datetime.datetime.now()
-    assert a_quote.quote_period == 1
-    assert a_quote.last_close == 10.01
-    assert a_quote.open_price == 11.01
-    assert a_quote.high_price == 12.01
-    assert a_quote.low_price == 9.01
-    assert a_quote.close_price == 11.01
-
-    a_quote.exchange = Exchange.SZ
-    a_quote.market_id = 'B'
-    a_quote.equity_id = '000002'
-    a_quote.equity_symbol = '002'
-    a_quote.equity_status = '2'
-    a_quote.quote_datetime = datetime.datetime.now()
-    a_quote.quote_period = 2
-    a_quote.last_close = 10.02
-    a_quote.open_price = 11.02
-    a_quote.high_price = 12.02
-    a_quote.low_price = 9.02
-    a_quote.close_price = 11.02
-
-    assert a_quote.exchange == Exchange.SZ
-    assert a_quote.market_id == 'B'
-    assert a_quote.equity_id == '000002'
-    assert a_quote.equity_symbol == '002'
-    assert a_quote.equity_status == '2'
-    assert a_quote.quote_datetime <= datetime.datetime.now()
-    assert a_quote.quote_period == 2
-    assert a_quote.last_close == 10.02
-    assert a_quote.open_price == 11.02
-    assert a_quote.high_price == 12.02
-    assert a_quote.low_price == 9.02
-    assert a_quote.close_price == 11.02
+    quote = get_quote()
+    assert quote.exchange == Exchange.SH
+    assert quote.market == Market.A
+    assert quote.equity == '000001'
+    assert quote.symbol == 'AAPL'
+    assert quote.category == EquityCategory.STOCK
+    assert quote.status == EquityStatus.TRADE
+    assert quote.dt <= datetime.datetime.now()
+    assert quote.period == 3
+    assert quote.last == 10.01
+    assert quote.open == 11.01
+    assert quote.high == 12.01
+    assert quote.low == 9.01
+    assert quote.close == 11.01
 
 
 def test_quote_snapshot():
-    exchange = Exchange.SH
-    quote_datetime = datetime.datetime.now()
-    exchange_status = '0'
-    num_equity = 1000
-    quotes = {}
+    snapshot = get_snapshot()
 
-    market_id = 'A'
-    equity_id = '000001'
-    equity_symbol = '001'
-    equity_status = '1'
-    quote_period = 1
-    last_close = 10.01
-    open_price = 11.01
-    high_price = 12.01
-    low_price = 9.01
-    close_price = 11.01
+    assert snapshot
 
-    a_quote = Quotes(exchange,
-                     market_id,
-                     equity_id,
-                     equity_symbol,
-                     equity_status,
-                     quote_datetime,
-                     quote_period,
-                     last_close,
-                     open_price,
-                     high_price,
-                     low_price,
-                     close_price)
-
-    quotes[equity_id] = a_quote
-
-    quote_snapshot = QuoteSnapshot(exchange,
-                                   quote_datetime,
-                                   exchange_status,
-                                   num_equity,
-                                   quotes)
-    assert quote_snapshot
-    assert quote_snapshot.quotes[equity_id].close_price == 11.01
-
-    assert quote_snapshot.exchange == exchange
-    assert quote_snapshot.quote_date == quote_datetime
-    assert quote_snapshot.exchange_status == exchange_status
-    assert quote_snapshot.num_equity == num_equity
-    assert quote_snapshot.quotes == quotes
-
-    quote_snapshot.exchange_id = exchange
-    quote_snapshot.quote_date = quote_datetime
-    quote_snapshot.exchange_status = exchange_status
-    quote_snapshot.num_equity = num_equity
-    quote_snapshot.quotes = quotes
-
-    assert quote_snapshot.exchange_id == exchange
-    assert quote_snapshot.quote_date == quote_datetime
-    assert quote_snapshot.exchange_status == exchange_status
-    assert quote_snapshot.num_equity == num_equity
-    assert quote_snapshot.quotes == quotes
+    assert snapshot.exchange == Exchange.SH
+    assert snapshot.dt <= datetime.datetime.now()
+    assert snapshot.status == MarketStatus.OPEN
+    assert snapshot.volume == 1000
+    assert snapshot.amount == 10000.23

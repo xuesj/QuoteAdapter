@@ -98,13 +98,11 @@ class ExchangeQuote(object):
         self._write_process = Process(target=self._write_quote, args=(self._queue,))
 
     def _write_quote(self, q):
-        i = 0
         while self.is_open():
             if self.has_msg():
                 self._last_msg_time = os.path.getmtime(self._port)
                 with open(self._port, 'r') as f:
-                    q.put(f.read() + str(i))
-                i += 1
+                    q.put(f.read())
             time.sleep(0.1)
 
     def run(self):
@@ -129,7 +127,6 @@ class ExchangeQuote(object):
         if self._protocol == Protocol.FILE:
             msg_time = os.path.getmtime(self._port)
             if msg_time > self._last_msg_time:
-                # self._last_msg_time = msg_time
                 return True
             else:
                 return False

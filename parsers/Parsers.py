@@ -2,8 +2,9 @@
 import abc
 from collections import defaultdict
 import datetime
-from utils import Exchange, Protocol
-from parsers.Quotes import QuoteSnapshot
+import time
+from utils import Exchange, Protocol, ExChangeStatus, Market, EquityCategory, EquityStatus
+from parsers.Quotes import QuoteSnapshot, Quote
 
 
 class Parser(object):
@@ -37,20 +38,55 @@ class Parser(object):
     @classmethod
     def handle_head(cls, ex, protocol, dict_value):
         if ex == Exchange.SH and protocol == Protocol.FILE:
-            quote_datetime = dict_value['MDTime']
-            exchange_status = dict_value['MDSesStatus']
-            num_equity = dict_value['TotNumTradeReports']
-            quotes = defaultdict(dict)
+            dt = dict_value['MDTime']
+            status = ExChangeStatus.OPEN  # to do for dict_value['MDSesStatus']
             quote_snapshot = QuoteSnapshot(ex,
-                                           quote_datetime,
-                                           exchange_status,
-                                           num_equity,
-                                           quotes)
+                                           dt,
+                                           status
+                                           )
             return quote_snapshot
+        else:
+            return None                   # to do for other types
 
     @classmethod
-    def handle_index(cls, ex, protocol, dict_value):
-        return dict_value
+    def handle_index(cls, ex, protocol, value):
+        if ex == Exchange.SH and protocol == Protocol.FILE:
+            exchange = ex
+            market = Market.ALL
+            equity = value['SecurityID']
+            symbol = value['Symbol']
+            category = EquityCategory.INDEX
+            status = EquityStatus.TRADE
+            dt = value['Timestamp']
+            volume = value['TradeVolume']
+            amount = value['TotalValueTraded']
+            last = value['PreClosePx']
+            open_price = value['OpenPrice']
+            high = value['HighPrice']
+            low = value['LowPrice']
+            price = value['TradePrice']
+            close_price = value['ClosePx']
+            timestamp = time.time()
+            quote = Quote(exchange,
+                          market,
+                          equity,
+                          symbol,
+                          category,
+                          status,
+                          dt,
+                          volume,
+                          amount,
+                          last,
+                          open_price,
+                          high,
+                          low,
+                          price,
+                          close_price,
+                          timestamp
+                          )
+            return quote
+        else:
+            return None                   # to do for other types
 
     @classmethod
     def handle_stock(cls, ex, protocol, dict_value):
@@ -244,7 +280,7 @@ class SnapshotParser(Parser):
 
     def __init__(self, exchange, protocol):
         super(SnapshotParser, self).__init__(exchange, protocol)
-        self._exchange_id = exchange
+        self._exchange = exchange
 
     def parse(self, msg):
         pass

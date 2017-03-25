@@ -4,7 +4,7 @@ import datetime
 
 from parsers.Parsers import Parser, IntParser, StringParser, FloatParser, DatetimeParser, TimeParser
 from utils import Exchange, Port, Protocol
-from parsers.Parsers import LineParser, QuoteSnapshot
+from parsers.Parsers import LineParser, QuoteSnapshot, Quote
 
 
 def test_field_parser():
@@ -68,17 +68,27 @@ def test_line_parser():
     line_type = LineParser.INDEX
     parser = LineParser(ex, protocol, conf_file, line_type)
     assert isinstance(parser, LineParser)
+
     with open(data_file, 'r') as f:
         line = f.readline()
         d = parser.parse(line)
 
     assert d
-    assert d['MDStringID'] == 'MD001'
-    assert d['Symbol'] == 'AAPL'
-    assert d['TradeVolume'] == 10000
+    assert isinstance(d, Quote)
+
+    assert d.symbol == 'AAPL'
+    assert d.volume == 10000
+    assert d.amount == 123456.78
+    assert d.last == 101.0001
+    assert d.open == 102.0002
+    assert d.high == 103.0003
+    assert d.low == 104.0004
+    assert d.price == 105.0005
+    assert d.close == 106.006
+    assert d.dt == datetime.time(22, 10, 30, 001)
 
     """Test stcok_parser"""
-    # index_data = '../datas/index_data.txt'
+    data_file = '../datas/stock_data.txt'
     conf_file = '../parsers/stock_rule.conf'
     ex = Exchange.SH
     protocol = Protocol.FILE
@@ -86,11 +96,64 @@ def test_line_parser():
     parser = LineParser(ex, protocol, conf_file, line_type)
     assert isinstance(parser, LineParser)
 
+    with open(data_file, 'r') as f:
+        line = f.readline()
+        d = parser.parse(line)
+
+    assert len(d) == 35
+    assert d['MDStringID'] == 'MD002'
+    assert d['Symbol'] == 'AAPL'
+    assert d['TradeVolume'] == 10000
+
+    """Test bond_parser"""
+    data_file = '../datas/bond_data.txt'
+    conf_file = '../parsers/stock_rule.conf'
+    ex = Exchange.SH
+    protocol = Protocol.FILE
+    line_type = LineParser.STOCK
+    parser = LineParser(ex, protocol, conf_file, line_type)
+    assert isinstance(parser, LineParser)
+
+    with open(data_file, 'r') as f:
+        line = f.readline()
+        d = parser.parse(line)
+
+    assert len(d) == 35
+    assert d['MDStringID'] == 'MD003'
+    assert d['Symbol'] == 'AAPL'
+    assert d['TradeVolume'] == 10000
+
+    """Test fund_parser"""
+    data_file = '../datas/fund_data.txt'
+    conf_file = '../parsers/stock_rule.conf'
+    ex = Exchange.SH
+    protocol = Protocol.FILE
+    line_type = LineParser.STOCK
+    parser = LineParser(ex, protocol, conf_file, line_type)
+    assert isinstance(parser, LineParser)
+
+    with open(data_file, 'r') as f:
+        line = f.readline()
+        d = parser.parse(line)
+
+    assert len(d) == 35
+    assert d['MDStringID'] == 'MD004'
+    assert d['Symbol'] == 'AAPL'
+    assert d['TradeVolume'] == 10000
+
     """Test tail_parser"""
-    # index_data = '../datas/index_data.txt'
+    data_file = '../datas/tail_data.txt'
     conf_file = '../parsers/tail_rule.conf'
     ex = Exchange.SH
     protocol = Protocol.FILE
     line_type = LineParser.TAIL
     parser = LineParser(ex, protocol, conf_file, line_type)
     assert isinstance(parser, LineParser)
+
+    with open(data_file, 'r') as f:
+        line = f.readline()
+        d = parser.parse(line)
+
+    assert len(d) == 2
+    assert d['EndingString'] == 'TRAILER'
+    assert d['CheckSum'] == 'ABC'

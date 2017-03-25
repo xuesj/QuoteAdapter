@@ -1,132 +1,129 @@
 # -*- coding: UTF-8 -*-
 """Define the data structure of quotes."""
+from collections import defaultdict
+from utils import QuotePeriod
+import time
 
 
-class Quotes(object):
+class Quote(object):
     """Base class of Quotes"""
 
     def __init__(self,
                  exchange,
-                 market_id,
-                 equity_id,
-                 equity_symbol,
-                 equity_status,
-                 quote_datetime,
-                 quote_period,
-                 last_close,
+                 market,
+                 equity,
+                 symbol,
+                 category,
+                 status,
+                 dt,
+                 volume,
+                 amount,
+                 last,
                  open_price,
-                 high_price,
-                 low_price,
-                 close_price
+                 high,
+                 low,
+                 price,
+                 close_price,
+                 timestamp,
+                 period=QuotePeriod.SECOND,
+                 buy_bids=defaultdict(dict),
+                 sell_bids=defaultdict(dict)
                  ):
         self._exchange = exchange
-        self._market_id = market_id
-        self._equity_id = equity_id
-        self._equity_symbol = equity_symbol
-        self._equity_status = equity_status
-        self._quote_date = quote_datetime
-        self._quote_period = quote_period
-        self._last_close = last_close
-        self._open_price = open_price
-        self._high_price = high_price
-        self._low_price = low_price
-        self._close_price = close_price
+        self._market = market
+        self._equity = equity
+        self._symbol = symbol
+        self._category = category
+        self._status = status
+        self._dt = dt
+        self._volume = volume
+        self._amount = amount
+        self._last = last
+        self._open = open_price
+        self._high = high
+        self._low = low
+        self._price = price
+        self._close = close_price
+        self._timestamp = timestamp
+        self._period = period
+        self._buy_bids = buy_bids
+        self._sell_bids = sell_bids
 
     @property
     def exchange(self):
         return self._exchange
 
-    @exchange.setter
-    def exchange(self, val):
-        self._exchange = val
+    @property
+    def market(self):
+        return self._market
 
     @property
-    def market_id(self):
-        return self._market_id
-
-    @market_id.setter
-    def market_id(self, val):
-        self._market_id = val
+    def equity(self):
+        return self._equity
 
     @property
-    def equity_id(self):
-        return self._equity_id
-
-    @equity_id.setter
-    def equity_id(self, val):
-        self._equity_id = val
+    def symbol(self):
+        return self._symbol
 
     @property
-    def equity_symbol(self):
-        return self._equity_symbol
-
-    @equity_symbol.setter
-    def equity_symbol(self, val):
-        self._equity_symbol = val
+    def category(self):
+        return self._category
 
     @property
-    def equity_status(self):
-        return self._equity_status
-
-    @equity_status.setter
-    def equity_status(self, val):
-        self._equity_status = val
+    def status(self):
+        return self._status
 
     @property
-    def quote_datetime(self):
-        return self._quote_date
-
-    @quote_datetime.setter
-    def quote_datetime(self, val):
-        self._quote_date = val
+    def dt(self):
+        return self._dt
 
     @property
-    def quote_period(self):
-        return self._quote_period
-
-    @quote_period.setter
-    def quote_period(self, val):
-        self._quote_period = val
+    def volume(self):
+        return self._volume
 
     @property
-    def last_close(self):
-        return self._last_close
-
-    @last_close.setter
-    def last_close(self, val):
-        self._last_close = val
+    def amount(self):
+        return self._amount
 
     @property
-    def open_price(self):
-        return self._open_price
-
-    @open_price.setter
-    def open_price(self, val):
-        self._open_price = val
+    def last(self):
+        return self._last
 
     @property
-    def high_price(self):
-        return self._high_price
-
-    @high_price.setter
-    def high_price(self, val):
-        self._high_price = val
+    def open(self):
+        return self._open
 
     @property
-    def low_price(self):
-        return self._low_price
-
-    @low_price.setter
-    def low_price(self, val):
-        self._low_price = val
+    def high(self):
+        return self._high
 
     @property
-    def close_price(self):
-        return self._close_price
+    def low(self):
+        return self._low
 
-    @close_price.setter
-    def close_price(self, val):
-        self._close_price = val
+    @property
+    def price(self):
+        return self._price
+
+    @property
+    def close(self):
+        return self._close
+
+    @property
+    def timestamp(self):
+        return self._timestamp
+
+    @property
+    def period(self):
+        return self._period
+
+    @property
+    def buy_bids(self):
+        return self._buy_bids
+
+    @property
+    def sell_bids(self):
+        return self._sell_bids
 
 
 class QuoteSnapshot(object):
@@ -134,52 +131,47 @@ class QuoteSnapshot(object):
 
     def __init__(self,
                  exchange,
-                 quote_datetime,
-                 exchange_status,
-                 num_equity,
-                 quotes):
+                 dt,
+                 status,
+                 volume=0,
+                 amount=0,
+                 timestamp=time.time(),
+                 period=QuotePeriod.SECOND,
+                 quotes=defaultdict(dict)
+                 ):
         self._exchange = exchange
-        self._quote_date = quote_datetime
-        self._exchange_status = exchange_status
-        self._num_equity = num_equity
+        self._dt = dt
+        self._status = status
+        self._volume = volume
+        self._amount = amount
+        self._timestamp = timestamp
+        self._period = period
         self._quotes = quotes
 
     @property
     def exchange(self):
         return self._exchange
 
-    @exchange.setter
-    def exchange(self, val):
-        self._exchange = val
+    @property
+    def dt(self):
+        return self._dt
 
     @property
-    def quote_datetime(self):
-        return self._quote_date
-
-    @quote_datetime.setter
-    def quote_date(self, val):
-        self._quote_date = val
+    def status(self):
+        return self._status
 
     @property
-    def exchange_status(self):
-        return self._exchange_status
-
-    @exchange_status.setter
-    def exchange_status(self, val):
-        self._exchange_status = val
+    def volume(self):
+        return self._volume
 
     @property
-    def num_equity(self):
-        return self._num_equity
+    def amount(self):
+        return self._amount
 
-    @num_equity.setter
-    def num_equity(self, val):
-        self._num_equity = val
+    @property
+    def timestamp(self):
+        return self._timestamp
 
     @property
     def quotes(self):
         return self._quotes
-
-    @quotes.setter
-    def quotes(self, val):
-        self._quotes = val
