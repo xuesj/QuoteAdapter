@@ -1,12 +1,10 @@
 # -*- coding: UTF-8 -*-
 
-from receivers.quoteReceiver import ExchangeQuote, TransCalendar, TransPeriod
-from utils import Protocol, Port, Exchange
+from receivers.Receiver import QuoteReceiver, TransCalendar, TransPeriod
+from utils import Protocol, Port
 import datetime
 from multiprocessing import Queue
-from parsers.Parsers import LineParser
-from parsers.Quotes import QuoteSnapshot
-from collections import defaultdict
+from test_parsers import get_snapshot_parser
 
 
 def test_trans_period():
@@ -76,7 +74,7 @@ def test_trans_calendar():
     assert not trans_calendar.is_trans_day(datetime.datetime(2017, 1, 27))
 
 
-def test_exchange_quote():
+def test_receiver():
     protocol = Protocol.FILE
     port = '../datas/mktdt00.txt'
     timeout = 3
@@ -91,37 +89,24 @@ def test_exchange_quote():
     trans_calendar = TransCalendar(periods)
     queue = Queue(10)
 
-    exchange_quote = ExchangeQuote(protocol=protocol, port=port, timeout=timeout,
+    quote_receiver = QuoteReceiver(protocol=protocol, port=port, timeout=timeout,
                                    interval=interval, trans_calendar=trans_calendar,
                                    queue=queue)
-    assert exchange_quote
-    # assert exchange_quote.is_open()
-    assert not exchange_quote.is_close()
+    assert quote_receiver
+    # assert quote_receiver.is_open()
+    assert not quote_receiver.is_close()
 
-    exchange_quote.run()
+    quote_receiver.run()
 
     i = 0
-    while exchange_quote.is_open():
-        quote = exchange_quote.read_quote()
-        if quote is not None:
-            head_conf = '../parsers/head_rule.conf'
-            ex = Exchange.SH
-            protocol = Protocol.FILE
-            line_type = LineParser.HEAD
-            head_parse = LineParser(ex, protocol, head_conf, line_type)
-            line = quote.split('\n')[0]
-            d = head_parse.parse(line)
-            assert isinstance(d, QuoteSnapshot)
-            dt = datetime.datetime(2017, 03, 24, 13, 45, 20, 001)
-            assert d.quote_datetime == dt
-            assert d.exchange == Exchange.SH
-            assert d.num_equity == 45
-            assert isinstance(d.quotes, defaultdict)
-            assert not d.quotes
+    snapshot_parser = get_snapshot_parser()
+    while quote_receiver.is_open():
+        msg = quote_receiver.get_msg()
+        if msg is not None:
+            quote = snapshot_parser.parse(msg)
+            print(quote.quotes.quotes['000001'].equity)
+        i += 1
+        if i >= 5:
+            break
 
-            print('Get quote ' + str(i))
-            i += 1
-            if i >= 5:
-                break
-
-    exchange_quote.end()
+    quote_receiver.end()

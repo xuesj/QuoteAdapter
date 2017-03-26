@@ -7,7 +7,7 @@ from parsers.Quotes import QuoteSnapshot
 
 def test_head_rule_file():
 
-    rule_file = '../parsers/head_rule.conf'
+    rule_file = '../datas/head_rule.conf'
     ex = Exchange.SH
     protocol = Protocol.FILE
     line_type = LineParser.HEAD

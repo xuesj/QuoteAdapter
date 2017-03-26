@@ -2,12 +2,12 @@
 """A program to simulate quote receiver receiving message from Exchange Server"""
 
 import calendar
-from datetime import timedelta, datetime, date
+import datetime
 from multiprocessing import Process
 from collections import defaultdict
 import os.path
 import time
-from utils import Port, Protocol, Exchange
+from utils import Protocol
 
 
 class TransPeriod(object):
@@ -35,7 +35,7 @@ class TransPeriod(object):
         h = self._end_time.hour - self._start_time.hour
         m = self._end_time.minute - self._start_time.minute
         s = m * 60 + self._end_time.second - self._start_time.second
-        return timedelta(hours=h, seconds=s)
+        return datetime.timedelta(hours=h, seconds=s)
 
 
 class TransCalendar(calendar.Calendar):
@@ -60,7 +60,7 @@ class TransCalendar(calendar.Calendar):
 
     def set_holiday(self, holidays):
         for year, holiday_list in holidays.items():
-            self._holidays[year] = [date(*holiday) for holiday in holiday_list]
+            self._holidays[year] = [datetime.date(*holiday) for holiday in holiday_list]
 
     def is_trans_day(self, dt):
         if ((dt.date().weekday() == calendar.SATURDAY) or
@@ -82,7 +82,7 @@ class TransCalendar(calendar.Calendar):
         return dt
 
 
-class ExchangeQuote(object):
+class QuoteReceiver(object):
     """Exchange quote service to provide real time quote of all its market"""
 
     def __init__(self, protocol, port, timeout, interval, trans_calendar, queue):
@@ -95,9 +95,9 @@ class ExchangeQuote(object):
         self._calendar = trans_calendar
         self._quote = None
         self._queue = queue
-        self._write_process = Process(target=self._write_quote, args=(self._queue,))
+        self._write_process = Process(target=self._put_msg, args=(self._queue,))
 
-    def _write_quote(self, q):
+    def _put_msg(self, q):
         while self.is_open():
             if self.has_msg():
                 self._last_msg_time = os.path.getmtime(self._port)
@@ -113,7 +113,8 @@ class ExchangeQuote(object):
 
     def is_open(self, dt=None):
         if dt is None:
-            dt = datetime.now()
+            dt = datetime.datetime(2017, 3, 22, 10, 10, 10)
+            # dt = datetime.now()
         if self._calendar.is_trans_day(dt) and self._calendar.is_trans_time(dt):
             return True
         else:
@@ -133,7 +134,7 @@ class ExchangeQuote(object):
         else:
             return True
 
-    def read_quote(self):
+    def get_msg(self):
         if not self._queue.empty():
             self._quote = self._queue.get()
             return self._quote

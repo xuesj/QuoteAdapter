@@ -49,7 +49,7 @@ class Parser(object):
             return None                   # to do for other types
 
     @classmethod
-    def handle_index(cls, ex, protocol, value):
+    def handle_quote(cls, ex, protocol, value):
         if ex == Exchange.SH and protocol == Protocol.FILE:
             exchange = ex
             market = Market.ALL
@@ -57,7 +57,8 @@ class Parser(object):
             symbol = value['Symbol']
             category = EquityCategory.INDEX
             status = EquityStatus.TRADE
-            dt = value['Timestamp']
+            dt = datetime.datetime.combine(datetime.datetime.today().date(),
+                                           value['Timestamp'])
             volume = value['TradeVolume']
             amount = value['TotalValueTraded']
             last = value['PreClosePx']
@@ -89,24 +90,48 @@ class Parser(object):
             return None                   # to do for other types
 
     @classmethod
-    def handle_stock(cls, ex, protocol, dict_value):
-        return dict_value
+    def handle_index(cls, ex, protocol, value):
+        return cls.handle_quote(ex, protocol, value)
 
     @classmethod
-    def handle_fund(cls, ex, protocol, dict_value):
-        return dict_value
+    def handle_stock(cls, ex, protocol, value):
+        quote = cls.handle_quote(ex, protocol, value)
+
+        quote.buy_bids['Buy1'] = {'Price': value['BuyPrice1'],
+                                  'Volume': value['BuyVolume1']}
+        quote.buy_bids['Buy2'] = {'Price': value['BuyPrice2'],
+                                  'Volume': value['BuyVolume2']}
+        quote.buy_bids['Buy3'] = {'Price': value['BuyPrice3'],
+                                  'Volume': value['BuyVolume3']}
+        quote.buy_bids['Buy4'] = {'Price': value['BuyPrice4'],
+                                  'Volume': value['BuyVolume4']}
+        quote.buy_bids['Buy5'] = {'Price': value['BuyPrice5'],
+                                  'Volume': value['BuyVolume5']}
+
+        quote.sell_bids['Sell1'] = {'Price': value['SellPrice1'],
+                                    'Volume': value['SellVolume1']}
+        quote.sell_bids['Sell2'] = {'Price': value['SellPrice2'],
+                                    'Volume': value['SellVolume2']}
+        quote.sell_bids['Sell3'] = {'Price': value['SellPrice3'],
+                                    'Volume': value['SellVolume3']}
+        quote.sell_bids['Sell4'] = {'Price': value['SellPrice4'],
+                                    'Volume': value['SellVolume4']}
+        quote.sell_bids['Sell5'] = {'Price': value['SellPrice5'],
+                                    'Volume': value['SellVolume5']}
+
+        return quote
 
     @classmethod
-    def handle_bond(cls, ex, protocol, dict_value):
-        return dict_value
+    def handle_fund(cls, ex, protocol, value):
+        return cls.handle_stock(ex, protocol, value)
 
     @classmethod
-    def handle_tail(cls, ex, protocol, dict_value):
-        return dict_value
+    def handle_bond(cls, ex, protocol, value):
+        return cls.handle_stock(ex, protocol, value)
 
     @classmethod
-    def get_quote(cls, ex, protocol, dict_value):
-        pass
+    def handle_tail(cls, ex, protocol, value):
+        return value
 
 
 class StringParser(Parser):
@@ -222,16 +247,16 @@ class LineParser(Parser):
     HEAD = 0
     INDEX = 1
     STOCK = 2
-    FUND = 3
-    BOND = 4
+    BOND = 3
+    FUND = 4
     TAIL = 5
 
-    HANDLES = {0: Parser.handle_head,
-               1: Parser.handle_index,
-               2: Parser.handle_stock,
-               3: Parser.handle_fund,
-               4: Parser.handle_bond,
-               5: Parser.handle_tail
+    HANDLES = {HEAD: Parser.handle_head,
+               INDEX: Parser.handle_index,
+               STOCK: Parser.handle_stock,
+               FUND: Parser.handle_fund,
+               BOND: Parser.handle_bond,
+               TAIL: Parser.handle_tail
                }
 
     def __init__(self, exchange, protocol, conf_file, line_type, msg_sep='|', conf_sep=','):
@@ -240,13 +265,13 @@ class LineParser(Parser):
         self._conf_sep = conf_sep
         self._line_type = line_type
         self._rules = []
-        self.set_rules(conf_file)
+        self._set_rules(conf_file)
 
     @property
     def parse_rules(self):
         return self._rules
 
-    def set_rules(self, rule_file):
+    def _set_rules(self, rule_file):
         sep = self._conf_sep
         ex = self._exchange
         protocol = self._protocol
@@ -278,9 +303,47 @@ class LineParser(Parser):
 class SnapshotParser(Parser):
     """the Parser to parse a quote snapshot"""
 
-    def __init__(self, exchange, protocol):
+    def __init__(self, exchange, protocol, port, head, index, stock, bond, fund, tail):
         super(SnapshotParser, self).__init__(exchange, protocol)
-        self._exchange = exchange
+        self._port = port
+        self._head = head
+        self._index = index
+        self._stock = stock
+        self._bond = bond
+        self._fund = fund
+        self._tail = tail
+
+        self._head_parser = LineParser(exchange, protocol, head, LineParser.HEAD)
+        self._index_parser = LineParser(exchange, protocol, index, LineParser.INDEX)
+        self._stock_parser = LineParser(exchange, protocol, stock, LineParser.STOCK)
+        self._bond_parser = LineParser(exchange, protocol, bond, LineParser.BOND)
+        self._fund_parser = LineParser(exchange, protocol, fund, LineParser.FUND)
+        self._tail_parser = LineParser(exchange, protocol, tail, LineParser.TAIL)
+
+    def get_msg(self):
+        with open(self._port, 'r') as f:
+            msg = f.read()
+        return msg
 
     def parse(self, msg):
-        pass
+        lines = msg.split('\n')
+        snapshot = self._head_parser.parse(lines[0])
+        for line in lines[1:-1]:
+            if line[0:5] == 'MD001':
+                quote = self._index_parser.parse(line)
+                snapshot.quotes[quote.equity] = quote
+            elif line[0:5] == 'MD002':
+                quote = self._stock_parser.parse(line)
+                snapshot.quotes[quote.equity] = quote
+            elif line[0:5] == 'MD003':
+                quote = self._bond_parser.parse(line)
+                snapshot.quotes[quote.equity] = quote
+            elif line[0:5] == 'MD004':
+                quote = self._fund_parser.parse(line)
+                snapshot.quotes[quote.equity] = quote
+            else:
+                raise ValueError
+        d = self._tail_parser.parse(lines[-1])
+        assert d['EndingString'] == 'TRAILER'
+        assert d['CheckSum'] == 'ABC'
+        return snapshot
