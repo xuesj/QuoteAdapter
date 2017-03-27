@@ -51,6 +51,7 @@ def get_snapshot():
     exchange = Exchange.SH
     dt = datetime.datetime.now()
     status = MarketStatus.OPEN
+    seq = 1
     volume = 1000
     amount = 10000.23
     timestamp = time.time()
@@ -59,6 +60,7 @@ def get_snapshot():
     snapshot = QuoteSnapshot(exchange,
                              dt,
                              status,
+                             seq,
                              volume,
                              amount,
                              timestamp,
@@ -83,6 +85,9 @@ def test_quotes():
     assert quote.high == 12.01
     assert quote.low == 9.01
     assert quote.close == 11.01
+
+    quote.category = EquityCategory.INDEX
+    assert quote.category == EquityCategory.INDEX
 
 
 def test_quote_snapshot():

@@ -102,8 +102,9 @@ class QuoteReceiver(object):
             if self.has_msg():
                 self._last_msg_time = os.path.getmtime(self._port)
                 with open(self._port, 'r') as f:
-                    q.put(f.read())
-            time.sleep(0.1)
+                    msg = f.read()
+                q.put(msg)
+            time.sleep(0.05)
 
     def run(self):
         self._write_process.start()
@@ -113,8 +114,7 @@ class QuoteReceiver(object):
 
     def is_open(self, dt=None):
         if dt is None:
-            dt = datetime.datetime(2017, 3, 22, 10, 10, 10)
-            # dt = datetime.now()
+            dt = datetime.datetime.now()
         if self._calendar.is_trans_day(dt) and self._calendar.is_trans_time(dt):
             return True
         else:

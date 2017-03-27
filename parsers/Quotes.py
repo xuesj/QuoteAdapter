@@ -69,6 +69,10 @@ class Quote(object):
     def category(self):
         return self._category
 
+    @category.setter
+    def category(self, val):
+        self._category = val
+
     @property
     def status(self):
         return self._status
@@ -133,6 +137,7 @@ class QuoteSnapshot(object):
                  exchange,
                  dt,
                  status,
+                 seq,
                  volume=0,
                  amount=0,
                  timestamp=time.time(),
@@ -141,6 +146,7 @@ class QuoteSnapshot(object):
                  ):
         self._exchange = exchange
         self._dt = dt
+        self._seq = seq
         self._status = status
         self._volume = volume
         self._amount = amount
@@ -155,6 +161,10 @@ class QuoteSnapshot(object):
     @property
     def dt(self):
         return self._dt
+
+    @property
+    def seq(self):
+        return self._seq
 
     @property
     def status(self):

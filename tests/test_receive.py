@@ -1,8 +1,9 @@
 # -*- coding: UTF-8 -*-
 
 from receivers.Receiver import QuoteReceiver, TransCalendar, TransPeriod
-from utils import Protocol, Port
+from utils import Protocol, Port, EquityCategory
 import datetime
+import time
 from multiprocessing import Queue
 from test_parsers import get_snapshot_parser
 
@@ -87,26 +88,38 @@ def test_receiver():
 
     periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
     trans_calendar = TransCalendar(periods)
-    queue = Queue(10)
+    queue = Queue(30)
 
     quote_receiver = QuoteReceiver(protocol=protocol, port=port, timeout=timeout,
                                    interval=interval, trans_calendar=trans_calendar,
                                    queue=queue)
     assert quote_receiver
-    # assert quote_receiver.is_open()
+    assert quote_receiver.is_open()
     assert not quote_receiver.is_close()
+    assert quote_receiver.has_msg()
 
     quote_receiver.run()
 
     i = 0
+    j = 0
     snapshot_parser = get_snapshot_parser()
-    while quote_receiver.is_open():
+    while True:
         msg = quote_receiver.get_msg()
+        # assert quote_receiver.has_msg()
         if msg is not None:
-            quote = snapshot_parser.parse(msg)
-            print(quote.quotes.quotes['000001'].equity)
+            snapshot = snapshot_parser.parse(msg)
+            assert snapshot.quotes['000001'].equity == '000001'
+            assert snapshot.quotes['000001'].category == EquityCategory.INDEX
+            assert snapshot.quotes['000002'].equity == '000002'
+            assert snapshot.quotes['000002'].category == EquityCategory.STOCK
+            assert snapshot.quotes['000003'].equity == '000003'
+            assert snapshot.quotes['000003'].category == EquityCategory.BOND
+            assert snapshot.quotes['000004'].equity == '000004'
+            assert snapshot.quotes['000004'].category == EquityCategory.FUND
+            j = snapshot.seq
+            print('receive message: ' + str(snapshot.seq))
         i += 1
-        if i >= 5:
+        if i >= 5000000 or j >= 30:
             break
 
     quote_receiver.end()

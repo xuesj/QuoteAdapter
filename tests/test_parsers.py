@@ -38,7 +38,7 @@ def test_field_parser():
     msg6 = '20:10:30.001'
     tm = datetime.time(20, 10, 30, 1)
 
-    assert parser1.parse(msg1) == 'Hello '
+    assert parser1.parse(msg1) == 'Hello'
     assert parser2.parse(msg2) == 123
     assert parser3.parse(msg3) == 123.54
     assert parser3.parse(msg4) == 1234.56
@@ -105,7 +105,7 @@ def test_line_parser():
     assert d
     assert isinstance(d, Quote)
 
-    assert d.symbol == 'AAPL'
+    assert d.symbol == 'BAPL'
     assert d.volume == 10000
     assert d.amount == 123456.78
     assert d.last == 101.001
@@ -154,7 +154,7 @@ def test_line_parser():
     assert d
     assert isinstance(d, Quote)
 
-    assert d.symbol == 'AAPL'
+    assert d.symbol == 'CAPL'
     assert d.volume == 10000
     assert d.amount == 123456.78
     assert d.last == 101.001
@@ -182,7 +182,7 @@ def test_line_parser():
     assert d
     assert isinstance(d, Quote)
 
-    assert d.symbol == 'AAPL'
+    assert d.symbol == 'DAPL'
     assert d.volume == 10000
     assert d.amount == 123456.78
     assert d.last == 101.001

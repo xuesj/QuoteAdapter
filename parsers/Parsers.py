@@ -36,13 +36,15 @@ class Parser(object):
         return field_parsers[leading](ex, protocol, parse_rule)
 
     @classmethod
-    def handle_head(cls, ex, protocol, dict_value):
+    def handle_head(cls, ex, protocol, value):
         if ex == Exchange.SH and protocol == Protocol.FILE:
-            dt = dict_value['MDTime']
+            dt = value['MDTime']
             status = ExChangeStatus.OPEN  # to do for dict_value['MDSesStatus']
+            seq = value['MDReportID']
             quote_snapshot = QuoteSnapshot(ex,
                                            dt,
-                                           status
+                                           status,
+                                           seq
                                            )
             return quote_snapshot
         else:
@@ -55,7 +57,7 @@ class Parser(object):
             market = Market.ALL
             equity = value['SecurityID']
             symbol = value['Symbol']
-            category = EquityCategory.INDEX
+            category = None
             status = EquityStatus.TRADE
             dt = datetime.datetime.combine(datetime.datetime.today().date(),
                                            value['Timestamp'])
@@ -91,11 +93,14 @@ class Parser(object):
 
     @classmethod
     def handle_index(cls, ex, protocol, value):
-        return cls.handle_quote(ex, protocol, value)
+        quote = cls.handle_quote(ex, protocol, value)
+        quote.category = EquityCategory.INDEX
+        return quote
 
     @classmethod
     def handle_stock(cls, ex, protocol, value):
         quote = cls.handle_quote(ex, protocol, value)
+        quote.category = EquityCategory.STOCK
 
         quote.buy_bids['Buy1'] = {'Price': value['BuyPrice1'],
                                   'Volume': value['BuyVolume1']}
@@ -123,11 +128,15 @@ class Parser(object):
 
     @classmethod
     def handle_fund(cls, ex, protocol, value):
-        return cls.handle_stock(ex, protocol, value)
+        quote = cls.handle_stock(ex, protocol, value)
+        quote.category = EquityCategory.FUND
+        return quote
 
     @classmethod
     def handle_bond(cls, ex, protocol, value):
-        return cls.handle_stock(ex, protocol, value)
+        quote = cls.handle_stock(ex, protocol, value)
+        quote.category = EquityCategory.BOND
+        return quote
 
     @classmethod
     def handle_tail(cls, ex, protocol, value):
@@ -148,9 +157,9 @@ class StringParser(Parser):
     def parse(self, msg):
         str_length = self._parse_rules['length']
         if self._parse_rules['padding'] == Parser.PADDING_RIGHT:
-            return msg[:str_length]
+            return msg[:str_length].strip()
         elif self._parse_rules['padding'] == Parser.PADDING_LEFT:
-            return msg[-str_length:]
+            return msg[-str_length:].strip()
         else:
             raise TypeError
 
