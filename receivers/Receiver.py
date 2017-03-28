@@ -3,11 +3,12 @@
 
 import calendar
 import datetime
-from multiprocessing import Process
+from multiprocessing import Process, Lock
 from collections import defaultdict
 import os.path
 import time
 from utils import Protocol
+import fcntl
 
 
 class TransPeriod(object):
@@ -96,13 +97,16 @@ class QuoteReceiver(object):
         self._quote = None
         self._queue = queue
         self._write_process = Process(target=self._put_msg, args=(self._queue,))
+        self._lock = Lock()
 
     def _put_msg(self, q):
         while self.is_open():
             if self.has_msg():
                 self._last_msg_time = os.path.getmtime(self._port)
                 with open(self._port, 'r') as f:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
                     msg = f.read()
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
                 q.put(msg)
             time.sleep(0.05)
 

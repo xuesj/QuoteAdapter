@@ -81,10 +81,10 @@ def test_receiver():
     timeout = 3
     interval = 6
 
-    t1 = datetime.time(hour=9, minute=30)
+    t1 = datetime.time(hour=8, minute=00)
     t2 = datetime.time(hour=11, minute=30)
     t3 = datetime.time(hour=13, minute=00)
-    t4 = datetime.time(hour=23, minute=00)
+    t4 = datetime.time(hour=23, minute=59)
 
     periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
     trans_calendar = TransCalendar(periods)
@@ -107,7 +107,11 @@ def test_receiver():
         msg = quote_receiver.get_msg()
         # assert quote_receiver.has_msg()
         if msg is not None:
+            t1 = time.time()
             snapshot = snapshot_parser.parse(msg)
+            t2 = time.time()
+            # print('Message line: ' + str(len(msg.split('\n'))))
+            print('Parse time: ' + str(t2 - t1))
             assert snapshot.quotes['000001'].equity == '000001'
             assert snapshot.quotes['000001'].category == EquityCategory.INDEX
             assert snapshot.quotes['000002'].equity == '000002'
