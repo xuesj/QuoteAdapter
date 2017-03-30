@@ -1,6 +1,7 @@
 # Added By me @2017/03/10
 *~
 .DS_Store
+datas/*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

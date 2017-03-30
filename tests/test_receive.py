@@ -4,7 +4,7 @@ from receivers.Receiver import QuoteReceiver, TransCalendar, TransPeriod
 from utils import Protocol, Port, EquityCategory
 import datetime
 import time
-from multiprocessing import Queue
+from multiprocessing import Queue, Process
 from test_parsers import get_snapshot_parser
 
 
@@ -90,9 +90,8 @@ def test_receiver():
     trans_calendar = TransCalendar(periods)
     queue = Queue(30)
 
-    quote_receiver = QuoteReceiver(protocol=protocol, port=port, timeout=timeout,
-                                   interval=interval, trans_calendar=trans_calendar,
-                                   queue=queue)
+    quote_receiver = QuoteReceiver(protocol=protocol, port=port, timeout=timeout, interval=interval,
+                                   trans_calendar=trans_calendar)
     assert quote_receiver
     assert quote_receiver.is_open()
     assert not quote_receiver.is_close()

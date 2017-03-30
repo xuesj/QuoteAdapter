@@ -3,7 +3,7 @@
 
 import calendar
 import datetime
-from multiprocessing import Process, Lock
+from multiprocessing import Process, Queue
 from collections import defaultdict
 import os.path
 import time
@@ -86,7 +86,7 @@ class TransCalendar(calendar.Calendar):
 class QuoteReceiver(object):
     """Exchange quote service to provide real time quote of all its market"""
 
-    def __init__(self, protocol, port, timeout, interval, trans_calendar, queue):
+    def __init__(self, protocol, port, timeout, interval, trans_calendar):
         self._protocol = protocol
         self._port = port
         self._last_msg_time = None
@@ -95,9 +95,8 @@ class QuoteReceiver(object):
         self._state = None
         self._calendar = trans_calendar
         self._quote = None
-        self._queue = queue
+        self._queue = Queue(100)
         self._write_process = Process(target=self._put_msg, args=(self._queue,))
-        self._lock = Lock()
 
     def _put_msg(self, q):
         while self.is_open():

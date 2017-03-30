@@ -104,7 +104,7 @@ def pub_quotes(pub_file):
     # lines = read_lines(EQUITY_FILES)
     tail = read_lines(TAIL_FILE)
     i = 0
-    m = 4000
+    m = 3000
     while True:
         i += 1
         msg = get_head(i)
