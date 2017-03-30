@@ -122,7 +122,7 @@ def pub_quotes(pub_file):
             fcntl.flock(f.fileno(), fcntl.LOCK_EX)
             f.write(msg)
             fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-        time.sleep(0.5)
+        time.sleep(0.75)
         if i >= 30:
             break
 

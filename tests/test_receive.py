@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
-from receivers.Receiver import QuoteReceiver, TransCalendar, TransPeriod
-from utils import Protocol, Port, EquityCategory
+from receivers.Receiver import QuoteReceiver, TransCalendar, TransPeriod, ExchangeServer
+from utils import Protocol, Port, EquityCategory, Exchange
 import datetime
 import time
 from multiprocessing import Queue, Process
@@ -51,7 +51,8 @@ def test_trans_calendar():
     t4 = datetime.time(hour=15, minute=30)
 
     periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
-    trans_calendar = TransCalendar(periods)
+    ex = Exchange.SH
+    trans_calendar = TransCalendar(ex, periods)
     now = datetime.datetime.now()
     assert trans_calendar
     # assert trans_calendar.is_trans_day(now)
@@ -75,37 +76,54 @@ def test_trans_calendar():
     assert not trans_calendar.is_trans_day(datetime.datetime(2017, 1, 27))
 
 
-def test_receiver():
-    protocol = Protocol.FILE
-    port = '../datas/mktdt00.txt'
-    timeout = 3
-    interval = 6
+def test_exchange_server():
+    protocol = Protocol.TCP
+    pub_port = 9129
+    ret_port = 9130
+    timeout = 10
 
-    t1 = datetime.time(hour=8, minute=00)
+    t1 = datetime.time(hour=9, minute=30)
     t2 = datetime.time(hour=11, minute=30)
     t3 = datetime.time(hour=13, minute=00)
-    t4 = datetime.time(hour=23, minute=59)
+    t4 = datetime.time(hour=23, minute=30)
 
     periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
-    trans_calendar = TransCalendar(periods)
-    queue = Queue(30)
+    ex = Exchange.SH
+    trans_cal = TransCalendar(ex, periods)
 
-    quote_receiver = QuoteReceiver(protocol=protocol, port=port, timeout=timeout, interval=interval,
-                                   trans_calendar=trans_calendar)
+    exchange_server = ExchangeServer(ex, protocol, pub_port, ret_port, timeout, trans_cal)
+    assert exchange_server
+
+    dt = datetime.datetime.today()
+    assert exchange_server.is_open(dt)
+
+
+def test_receiver():
+    protocol = Protocol.FILE
+    pub_port = '../datas/mktdt00.txt'
+    ret_port = None
+    timeout = 6
+
+    t1 = datetime.time(hour=9, minute=30)
+    t2 = datetime.time(hour=11, minute=30)
+    t3 = datetime.time(hour=13, minute=00)
+    t4 = datetime.time(hour=23, minute=30)
+    periods = [TransPeriod(t1, t2), TransPeriod(t3, t4)]
+
+    ex = Exchange.SH
+    trans_cal = TransCalendar(ex, periods)
+    exchange_server = ExchangeServer(ex, protocol, pub_port, ret_port, timeout, trans_cal)
+    quote_receiver = QuoteReceiver(exchange_server)
     assert quote_receiver
-    assert quote_receiver.is_open()
-    assert not quote_receiver.is_close()
-    assert quote_receiver.has_msg()
 
-    quote_receiver.run()
+    quote_receiver.start()
 
     i = 0
     j = 0
     snapshot_parser = get_snapshot_parser()
     while True:
-        msg = quote_receiver.get_msg()
-        # assert quote_receiver.has_msg()
-        if msg is not None:
+        msg = quote_receiver.queue.get()
+        if msg is not None and msg != '':
             t1 = time.time()
             snapshot = snapshot_parser.parse(msg)
             t2 = time.time()
@@ -125,4 +143,4 @@ def test_receiver():
         if i >= 5000000 or j >= 30:
             break
 
-    quote_receiver.end()
+    quote_receiver.terminate()
