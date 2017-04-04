@@ -5,6 +5,7 @@ import datetime
 import time
 from utils import Exchange, Protocol, ExChangeStatus, Market, EquityCategory, EquityStatus
 from parsers.Quotes import QuoteSnapshot, Quote
+# from multiprocessing import Pool
 
 
 class Parser(object):
@@ -329,30 +330,38 @@ class SnapshotParser(Parser):
         self._fund_parser = LineParser(exchange, protocol, fund, LineParser.FUND)
         self._tail_parser = LineParser(exchange, protocol, tail, LineParser.TAIL)
 
+        # self._pool = Pool(processes=8)
+
     def get_msg(self):
         with open(self._port, 'r') as f:
             msg = f.read()
         return msg
 
+    def parse_line(self, line):
+        if line[0:5] == 'MD001':
+            quote = self._index_parser.parse(line)
+        elif line[0:5] == 'MD002':
+            quote = self._stock_parser.parse(line)
+        elif line[0:5] == 'MD003':
+            quote = self._bond_parser.parse(line)
+        elif line[0:5] == 'MD004':
+            quote = self._fund_parser.parse(line)
+        else:
+            raise ValueError
+        return quote
+
     def parse(self, msg):
         lines = msg.split('\n')
         snapshot = self._head_parser.parse(lines[0])
-        for line in lines[1:-1]:
-            if line[0:5] == 'MD001':
-                quote = self._index_parser.parse(line)
-                snapshot.quotes[quote.equity] = quote
-            elif line[0:5] == 'MD002':
-                quote = self._stock_parser.parse(line)
-                snapshot.quotes[quote.equity] = quote
-            elif line[0:5] == 'MD003':
-                quote = self._bond_parser.parse(line)
-                snapshot.quotes[quote.equity] = quote
-            elif line[0:5] == 'MD004':
-                quote = self._fund_parser.parse(line)
-                snapshot.quotes[quote.equity] = quote
-            else:
-                raise ValueError
-        d = self._tail_parser.parse(lines[-1])
-        assert d['EndingString'] == 'TRAILER'
-        assert d['CheckSum'] == 'ABC'
+
+        # it = self._pool.map(self.parse_line, lines[1:-1])
+        # for quote in it:
+        #    snapshot.quotes[quote.equity] = quote
+        for line in lines[1:-2]:
+            quote = self.parse_line(line)
+            snapshot.quotes[quote.equity] = quote
+
+        # d = self._tail_parser.parse(lines[-1])
+        # assert d['EndingString'] == 'TRAILER'
+        # assert d['CheckSum'] == 'ABC'
         return snapshot
