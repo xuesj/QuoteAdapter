@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Simulator to publish Shanghai Exchange quotes through file 'mktdt00.txt'"""
+"""SimulateServer to publish Shanghai Exchange quotes through file 'mktdt00.txt'"""
 
 import os.path
 import time

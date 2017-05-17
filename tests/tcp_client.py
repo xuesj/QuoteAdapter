@@ -81,24 +81,24 @@ class TCPMessage(object):
     def msg(self):
         return self._head + self._info + self._tail
 
-# Create a socket (SOCK_STREAM means a TCP socket)
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if __name__ == '__main__':
+    # Create a socket (SOCK_STREAM means a TCP socket)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-try:
-    # Connect to server and send data
-    sock.connect((HOST, PORT))
-    msg_status = MsgStatus.B
+    try:
+        # Connect to server and send data
+        sock.connect((HOST, PORT))
+        msg_status = MsgStatus.B
 
-    # Receive data from the server and shut down
-    i = 1
-    left = ''
-    while i <= 5:
-        msg = TCPMessage()
-        while msg.status != MsgStatus.E:
-            received = left + sock.recv(1024)
-            prev, info, left = msg.feed_info(received)
-        print "Received: {}\n{}".format(str(i), msg.msg)
-        i += 1
-finally:
-    sock.close()
-
+        # Receive data from the server and shut down
+        i = 1
+        left = ''
+        while i <= 5:
+            msg = TCPMessage()
+            while msg.status != MsgStatus.E:
+                received = left + sock.recv(1024)
+                prev, info, left = msg.feed_info(received)
+            print "Received: {}\n{}".format(str(i), msg.msg)
+            i += 1
+    finally:
+        sock.close()

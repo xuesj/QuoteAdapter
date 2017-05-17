@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Simulator to publish Shanghai Exchange quotes through file 'mktdt00.txt'"""
+"""SimulateServer to publish Shanghai Exchange quotes through file 'mktdt00.txt'"""
 
 import os.path
 import time
@@ -52,7 +52,7 @@ def quote_seq(seq, head, index, stock, bond, fund, tail, m=1000, k=5):
 
 
 def quotes():
-    m = 2
+    m = 2000
     i = 0
     head = get_data(HEAD_FILE)
     index = get_data(INDEX_FILE)

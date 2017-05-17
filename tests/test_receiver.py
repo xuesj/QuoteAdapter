@@ -59,7 +59,7 @@ def test_text_receiver():
     ret_port = None
     timeout = 6
 
-    t1 = datetime.time(hour=9, minute=30)
+    t1 = datetime.time(hour=9, minute=00)
     t2 = datetime.time(hour=11, minute=30)
     t3 = datetime.time(hour=13, minute=00)
     t4 = datetime.time(hour=23, minute=30)
@@ -88,12 +88,6 @@ def test_text_receiver():
                 print('Parse time: ' + str(t2 - t1))
                 assert snapshot.quotes['000001'].equity == '000001'
                 assert snapshot.quotes['000001'].category == EquityCategory.INDEX
-                assert snapshot.quotes['000002'].equity == '000002'
-                assert snapshot.quotes['000002'].category == EquityCategory.STOCK
-                assert snapshot.quotes['000003'].equity == '000003'
-                assert snapshot.quotes['000003'].category == EquityCategory.BOND
-                assert snapshot.quotes['000004'].equity == '000004'
-                assert snapshot.quotes['000004'].category == EquityCategory.FUND
                 j = snapshot.seq
                 print('receive message: ' + str(snapshot.seq))
 
