@@ -101,6 +101,7 @@ def text_simulator(ex_server):
     ts = TextSimulator(ex_server)
     ts.pub_quotes()
 
+
 if __name__ == '__main__':
     protocol = Protocol.FILE
     pub_port = '../datas/mktdt00.txt'

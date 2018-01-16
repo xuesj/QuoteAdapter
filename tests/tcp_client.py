@@ -81,6 +81,7 @@ class TCPMessage(object):
     def msg(self):
         return self._head + self._info + self._tail
 
+
 if __name__ == '__main__':
     # Create a socket (SOCK_STREAM means a TCP socket)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -86,6 +86,7 @@ class SHTCPHandler(SocketServer.BaseRequestHandler):
                 break
             time.sleep(3)
 
+
 if __name__ == '__main__':
     HOST, PORT = 'localhost', 9129
     # Create the server, binding to localhost on port 9129
